@@ -84,6 +84,10 @@
       <Project>{76ae7c96-dee2-4b97-8d36-ba5818080e9f}</Project>
       <Name>SelectShape</Name>
     </ProjectReference>
+    <ProjectReference Include="..\ShapeFactory\FactoryShape.csproj">
+      <Project>{3fc51bb6-2144-4176-baaf-03e804a4f152}</Project>
+      <Name>FactoryShape</Name>
+    </ProjectReference>
     <ProjectReference Include="..\Shapes\Shapes.csproj">
       <Project>{a00aa2ce-c140-4b39-87c5-22353569c75f}</Project>
       <Name>Shapes</Name>
