@@ -30,7 +30,7 @@ namespace Shapes
             _shapeType = "Rectangle";
         }
 
-        public void Move(int deltaX, int deltaY)
+        public override void Move(int deltaX, int deltaY)
         {
             _point1.Move(deltaX, deltaY);
         }

@@ -34,7 +34,7 @@ namespace Shapes
             return Math.PI * Convert.ToDouble(_length) * Convert.ToDouble(_width);
         }
 
-        public void Move(int deltaX, int deltaY)
+        public override void Move(int deltaX, int deltaY)
         {
             _point1.Move(deltaX, deltaY);
         }

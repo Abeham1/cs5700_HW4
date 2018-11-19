@@ -80,9 +80,9 @@
     <None Include="App.config" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\SelectShape\SelectShape.csproj">
-      <Project>{76ae7c96-dee2-4b97-8d36-ba5818080e9f}</Project>
-      <Name>SelectShape</Name>
+    <ProjectReference Include="..\CommandPattern\CommandPattern.csproj">
+      <Project>{4cfe9249-277f-4e54-8482-59668817001f}</Project>
+      <Name>CommandPattern</Name>
     </ProjectReference>
     <ProjectReference Include="..\ShapeFactory\FactoryShape.csproj">
       <Project>{3fc51bb6-2144-4176-baaf-03e804a4f152}</Project>

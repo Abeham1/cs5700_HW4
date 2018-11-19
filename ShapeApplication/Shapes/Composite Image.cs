@@ -15,7 +15,10 @@ namespace Shapes
         private string _filepath;
         private List<Shape> shapes;
 
-
+        public override void Move(int deltaX, int deltaY)
+        {
+            _point1.Move(deltaX, deltaY);
+        }
 
         public CompositeImage(string filepath)
         {

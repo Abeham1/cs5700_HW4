@@ -15,5 +15,7 @@ namespace Shapes
         public abstract string filepath { get; set; }
 
         public abstract override string ToString();
+
+        public abstract void Move(int x, int y);
     }
 }

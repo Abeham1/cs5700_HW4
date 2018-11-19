@@ -64,10 +64,6 @@
     <None Include="packages.config" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\SelectShape\SelectShape.csproj">
-      <Project>{76ae7c96-dee2-4b97-8d36-ba5818080e9f}</Project>
-      <Name>SelectShape</Name>
-    </ProjectReference>
     <ProjectReference Include="..\ShapeApplication\ShapeApplication.csproj">
       <Project>{B7E54F51-8E21-4928-A33C-337E96FEDC84}</Project>
       <Name>ShapeApplication</Name>

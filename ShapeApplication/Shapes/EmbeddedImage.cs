@@ -25,6 +25,11 @@ namespace Shapes
             _shapeType = "Embedded Image";
         }
 
+        public override void Move(int deltaX, int deltaY)
+        {
+            _point1.Move(deltaX, deltaY);
+        } 
+
         public override string ToString()
         {
             return "Embedded Image," + _point1.X.ToString() + "," + _point1.Y.ToString() + "," + _length.ToString() + "," + _width.ToString() + "," + _filepath;

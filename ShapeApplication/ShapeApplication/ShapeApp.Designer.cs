@@ -34,16 +34,18 @@
             this.menuItemSave = new System.Windows.Forms.ToolStripMenuItem();
             this.menuItemSaveAs = new System.Windows.Forms.ToolStripMenuItem();
             this.menuItemOpen = new System.Windows.Forms.ToolStripMenuItem();
-            this.btnEllipse = new System.Windows.Forms.ToolStripButton();
             this.btnCircle = new System.Windows.Forms.ToolStripButton();
+            this.btnEllipse = new System.Windows.Forms.ToolStripButton();
             this.btnSquare = new System.Windows.Forms.ToolStripButton();
             this.btnRectangle = new System.Windows.Forms.ToolStripButton();
             this.btnTriangle = new System.Windows.Forms.ToolStripButton();
             this.btnLine = new System.Windows.Forms.ToolStripButton();
             this.btnEmbeddedPic = new System.Windows.Forms.ToolStripButton();
-            this.txtDesignation = new System.Windows.Forms.TextBox();
             this.btnUndo = new System.Windows.Forms.ToolStripButton();
             this.btnRedo = new System.Windows.Forms.ToolStripButton();
+            this.txtDesignation = new System.Windows.Forms.TextBox();
+            this.btnSelect = new System.Windows.Forms.ToolStripButton();
+            this.btnEraser = new System.Windows.Forms.ToolStripButton();
             this.toolStrip1.SuspendLayout();
             this.SuspendLayout();
             // 
@@ -51,6 +53,8 @@
             // 
             this.toolStrip1.Items.AddRange(new System.Windows.Forms.ToolStripItem[] {
             this.comboBoxFile,
+            this.btnSelect,
+            this.btnEraser,
             this.btnCircle,
             this.btnEllipse,
             this.btnSquare,
@@ -82,30 +86,23 @@
             // menuItemSave
             // 
             this.menuItemSave.Name = "menuItemSave";
-            this.menuItemSave.Size = new System.Drawing.Size(123, 22);
+            this.menuItemSave.Size = new System.Drawing.Size(180, 22);
             this.menuItemSave.Text = "Save";
+            this.menuItemSave.Click += new System.EventHandler(this.menuItemSave_Click);
             // 
             // menuItemSaveAs
             // 
             this.menuItemSaveAs.Name = "menuItemSaveAs";
-            this.menuItemSaveAs.Size = new System.Drawing.Size(123, 22);
+            this.menuItemSaveAs.Size = new System.Drawing.Size(180, 22);
             this.menuItemSaveAs.Text = "Save As...";
+            this.menuItemSaveAs.Click += new System.EventHandler(this.menuItemSaveAs_Click);
             // 
             // menuItemOpen
             // 
             this.menuItemOpen.Name = "menuItemOpen";
-            this.menuItemOpen.Size = new System.Drawing.Size(123, 22);
+            this.menuItemOpen.Size = new System.Drawing.Size(180, 22);
             this.menuItemOpen.Text = "Open";
-            // 
-            // btnEllipse
-            // 
-            this.btnEllipse.DisplayStyle = System.Windows.Forms.ToolStripItemDisplayStyle.Image;
-            this.btnEllipse.Image = ((System.Drawing.Image)(resources.GetObject("btnEllipse.Image")));
-            this.btnEllipse.ImageTransparentColor = System.Drawing.Color.Magenta;
-            this.btnEllipse.Name = "btnEllipse";
-            this.btnEllipse.Size = new System.Drawing.Size(23, 22);
-            this.btnEllipse.Text = "toolStripButton1";
-            this.btnEllipse.Click += new System.EventHandler(this.btnEllipse_Click);
+            this.menuItemOpen.Click += new System.EventHandler(this.menuItemOpen_Click);
             // 
             // btnCircle
             // 
@@ -116,6 +113,16 @@
             this.btnCircle.Size = new System.Drawing.Size(23, 22);
             this.btnCircle.Text = "toolStripButton1";
             this.btnCircle.Click += new System.EventHandler(this.btnCircle_Click);
+            // 
+            // btnEllipse
+            // 
+            this.btnEllipse.DisplayStyle = System.Windows.Forms.ToolStripItemDisplayStyle.Image;
+            this.btnEllipse.Image = ((System.Drawing.Image)(resources.GetObject("btnEllipse.Image")));
+            this.btnEllipse.ImageTransparentColor = System.Drawing.Color.Magenta;
+            this.btnEllipse.Name = "btnEllipse";
+            this.btnEllipse.Size = new System.Drawing.Size(23, 22);
+            this.btnEllipse.Text = "toolStripButton1";
+            this.btnEllipse.Click += new System.EventHandler(this.btnEllipse_Click);
             // 
             // btnSquare
             // 
@@ -167,16 +174,6 @@
             this.btnEmbeddedPic.Text = "toolStripButton1";
             this.btnEmbeddedPic.Click += new System.EventHandler(this.btnEmbeddedPic_Click);
             // 
-            // txtDesignation
-            // 
-            this.txtDesignation.Enabled = false;
-            this.txtDesignation.Location = new System.Drawing.Point(13, 510);
-            this.txtDesignation.Name = "txtDesignation";
-            this.txtDesignation.ReadOnly = true;
-            this.txtDesignation.Size = new System.Drawing.Size(268, 20);
-            this.txtDesignation.TabIndex = 1;
-            this.txtDesignation.TabStop = false;
-            // 
             // btnUndo
             // 
             this.btnUndo.DisplayStyle = System.Windows.Forms.ToolStripItemDisplayStyle.Image;
@@ -197,6 +194,36 @@
             this.btnRedo.Text = "toolStripButton1";
             this.btnRedo.Click += new System.EventHandler(this.btnRedo_Click);
             // 
+            // txtDesignation
+            // 
+            this.txtDesignation.Enabled = false;
+            this.txtDesignation.Location = new System.Drawing.Point(13, 510);
+            this.txtDesignation.Name = "txtDesignation";
+            this.txtDesignation.ReadOnly = true;
+            this.txtDesignation.Size = new System.Drawing.Size(268, 20);
+            this.txtDesignation.TabIndex = 1;
+            this.txtDesignation.TabStop = false;
+            // 
+            // btnSelect
+            // 
+            this.btnSelect.DisplayStyle = System.Windows.Forms.ToolStripItemDisplayStyle.Image;
+            this.btnSelect.Image = ((System.Drawing.Image)(resources.GetObject("btnSelect.Image")));
+            this.btnSelect.ImageTransparentColor = System.Drawing.Color.Magenta;
+            this.btnSelect.Name = "btnSelect";
+            this.btnSelect.Size = new System.Drawing.Size(23, 22);
+            this.btnSelect.Text = "toolStripButton1";
+            this.btnSelect.Click += new System.EventHandler(this.btnSelect_Click);
+            // 
+            // btnEraser
+            // 
+            this.btnEraser.DisplayStyle = System.Windows.Forms.ToolStripItemDisplayStyle.Image;
+            this.btnEraser.Image = ((System.Drawing.Image)(resources.GetObject("btnEraser.Image")));
+            this.btnEraser.ImageTransparentColor = System.Drawing.Color.Magenta;
+            this.btnEraser.Name = "btnEraser";
+            this.btnEraser.Size = new System.Drawing.Size(23, 22);
+            this.btnEraser.Text = "toolStripButton1";
+            this.btnEraser.Click += new System.EventHandler(this.btnEraser_Click);
+            // 
             // ShapeApp
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
@@ -207,6 +234,7 @@
             this.Name = "ShapeApp";
             this.Text = "ShapeApp";
             this.Load += new System.EventHandler(this.ShapeApp_Load);
+            this.Click += new System.EventHandler(this.ShapeApp_Click);
             this.MouseDown += new System.Windows.Forms.MouseEventHandler(this.ShapeApp_MouseDown);
             this.MouseMove += new System.Windows.Forms.MouseEventHandler(this.ShapeApp_MouseMove);
             this.MouseUp += new System.Windows.Forms.MouseEventHandler(this.ShapeApp_MouseUp);
@@ -234,6 +262,8 @@
         private System.Windows.Forms.TextBox txtDesignation;
         private System.Windows.Forms.ToolStripButton btnUndo;
         private System.Windows.Forms.ToolStripButton btnRedo;
+        private System.Windows.Forms.ToolStripButton btnSelect;
+        private System.Windows.Forms.ToolStripButton btnEraser;
     }
 }
 

@@ -8,31 +8,37 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Forms;
-using SelectShape;
 using Shapes;
 using FactoryShape;
+using CommandPattern;
 
 namespace ShapeApplication
 {
     public partial class ShapeApp : Form
     {
-        //TODO: Figure out how to select, move, and delete a shape
-        //TODO: Save, Save As, and open
-        //TODO: Why is the previous shape deleted each time a new shape is drawn?
+        public List<Shape> shapeList;
+        public List<Command> commandList;
+        private int currentCommand;
+        int counter;
         public string embeddedPicFilepath;
         private System.Drawing.Graphics graphicsObj;
         private Pen pen;
-        private enum shapeDesignation {CIRCLE, ELLIPSE, SQUARE, RECTANGLE, TRIANGLE, LINE, EMBEDDED_PIC};
+        private enum shapeDesignation {CIRCLE, ELLIPSE, SQUARE, RECTANGLE, TRIANGLE, LINE, EMBEDDED_PIC, SELECT, ERASE};
         private shapeDesignation designation;
         private bool isDown;
         int initialX;
         int initialY;
         int secondaryX;
         int secondaryY;
+        bool saved;
+        private string saveFilepath;
 
         /* CONSTRUCTOR =================================================================*/
         public ShapeApp()
         {
+            currentCommand = 0;
+            shapeList = new List<Shape>();
+            commandList = new List<Command>();
             InitializeComponent();
             graphicsObj = this.CreateGraphics();
             pen = new Pen(System.Drawing.Color.Black, 5);
@@ -43,6 +49,9 @@ namespace ShapeApplication
             initialY = 0;
             secondaryX = 0;
             secondaryY = 0;
+            counter = 0;
+            saved = false;
+            saveFilepath = "";
         }
 
         private void ShapeApp_Load(object sender, EventArgs e)
@@ -51,65 +60,7 @@ namespace ShapeApplication
         }
         //================================================================================
 
-        //private void btnAddShape_Click(object sender, EventArgs e)
-        //{
-        //    shapeSelectForm = new ShapeSelect();
-        //    shapeSelectForm.ShowDialog();
-        //    Shape shape = shapeSelectForm.shapeToDraw;
-        //    shapeList.Add(shape);
-        //    renderShape(shape);
-        //    Console.WriteLine("Shape details:");
-        //    Console.WriteLine("Shape Type: " + shape.ShapeType);
-        //    Console.WriteLine("X: " + shape.point1.X.ToString());
-        //    Console.WriteLine("Y: " + shape.point1.Y.ToString());
-        //    Console.WriteLine("Length: " + shape.length.ToString());
-        //    Console.WriteLine("Width: " + shape.width.ToString());
-        //}
-
-        //private void btnSaveShapeToScript_Click(object sender, EventArgs e)
-        //{
-        //    SaveFileDialog save = new SaveFileDialog();
-        //    save.FileName = "Shape" + counter.ToString() + ".txt";
-        //    save.Filter = "Text File | *.txt";
-        //    if(save.ShowDialog() == DialogResult.OK)
-        //    {
-        //        CompositeImage ci = new CompositeImage(save.FileName);
-        //        StreamWriter writer = new StreamWriter(save.OpenFile());
-        //        for(int i = 0; i < shapeList.Count(); i++)
-        //        {
-        //            writer.WriteLine(shapeList[i].ToString());
-        //            ci.addShape(shapeList[i]);
-        //        }
-        //        writer.Dispose();
-        //        writer.Close();
-        //    }
-        //}
-
-        //private void btnLoadShapeFromScript_Click(object sender, EventArgs e)
-        //{ 
-        //    int count = 0;
-        //    string line;
-        //    string filepath = "";
-        //    OpenFileDialog openFileDialog1 = new OpenFileDialog();
-        //    DialogResult result = openFileDialog1.ShowDialog();
-        //    if (result == DialogResult.OK)
-        //    { 
-        //        filepath = openFileDialog1.FileName;
-        //    }
-        //    if(filepath != "")
-        //    {
-        //        System.IO.StreamReader file = new System.IO.StreamReader(filepath);
-        //        while ((line = file.ReadLine()) != null)
-        //        {
-        //            shapeList.Add(readShape(line));
-        //            count++;
-        //        }
-
-        //        file.Close();
-        //    }
-
-        //    renderShapeList();
-        //}
+        /* Utilities =============================================================================*/
 
         public Shape readShape(string shapeText)
         {
@@ -132,7 +83,18 @@ namespace ShapeApplication
             return null;
         }
 
-       
+        private void renderShapeList()
+        {
+            for (int i = 0; i < shapeList.Count(); i++)
+            {
+                renderShape(shapeList[i]);
+            }
+        }
+
+        private void clearShapes()
+        {
+            graphicsObj.Clear(Color.White);
+        }
         //==========================================================================================
 
         /* Change Designation and update visual buttons ======================================= */
@@ -192,6 +154,22 @@ namespace ShapeApplication
             updateTxtDesignation();
         }
 
+        private void btnSelect_Click(object sender, EventArgs e)
+        {
+            nullColors();
+            btnSelect.BackColor = Color.Aquamarine;
+            designation = shapeDesignation.SELECT;
+            updateTxtDesignation();
+        }
+
+        private void btnEraser_Click(object sender, EventArgs e)
+        {
+            nullColors();
+            btnEraser.BackColor = Color.Aquamarine;
+            designation = shapeDesignation.ERASE;
+            updateTxtDesignation();
+        }
+
         private void nullColors()
         {
             btnCircle.BackColor = Color.White;
@@ -201,11 +179,16 @@ namespace ShapeApplication
             btnEmbeddedPic.BackColor = Color.White;
             btnTriangle.BackColor = Color.White;
             btnLine.BackColor = Color.White;
+            btnSelect.BackColor = Color.White;
+            btnEraser.BackColor = Color.White;
         }
 
         private void updateTxtDesignation()
         {
-            txtDesignation.Text = "Currently drawing: " + designation.ToString();
+            if (designation != shapeDesignation.SELECT && designation != shapeDesignation.ERASE)
+                txtDesignation.Text = "Currently drawing: " + designation.ToString();
+            else
+                txtDesignation.Text = "Select";
         }
         //==========================================================================================
 
@@ -221,7 +204,6 @@ namespace ShapeApplication
         {
             if (isDown && designation != shapeDesignation.LINE)
             {
-                Refresh();
                 secondaryX = e.X;
                 secondaryY = e.Y;
             }
@@ -229,8 +211,106 @@ namespace ShapeApplication
 
         private void ShapeApp_MouseUp(object sender, MouseEventArgs e)
         {
-            isDown = false;
-            drawShape();
+            if(designation != shapeDesignation.SELECT && designation != shapeDesignation.ERASE)
+            {
+                isDown = false;
+                drawShape();
+            }
+            if (designation == shapeDesignation.SELECT)
+            {
+                int counter = 0;
+                foreach(Shape shape in shapeList)
+                {
+                    Command command = new Command(Command.commandType.MOVE);
+                    switch (shape.ShapeType)
+                    {
+                        case "Circle":
+                            if (Math.Abs(shape.point1.X - initialX) < shape.width && Math.Abs(shape.point1.Y - initialY) < shape.width)
+                            {
+                                command.preAction = shapeList[counter];
+                                shapeList[counter].Move(secondaryX - initialX, secondaryY - initialY);
+                                command.shapeListPosition = counter;
+                                command.postAction = shapeList[counter];
+                                command.deltaX = secondaryX - initialX;
+                                command.deltaY = secondaryY - initialY;
+                                commandList.Add(command);
+                                currentCommand++;
+                            }
+                            else
+                                counter++;
+                            break;
+                        case "Ellipse":
+                            if (Math.Abs(shape.point1.X - initialX) < shape.width && Math.Abs(shape.point1.Y - initialY) < shape.length)
+                            {
+                                command.preAction = shapeList[counter];
+                                shapeList[counter].Move(secondaryX - initialX, secondaryY - initialY);
+                                command.shapeListPosition = counter;
+                                command.postAction = shapeList[counter];
+                                command.deltaX = secondaryX - initialX;
+                                command.deltaY = secondaryY - initialY;
+                                commandList.Add(command);
+                                currentCommand++;
+                            }
+                            else
+                                counter++;
+                            break;
+                        case "Rectangle":
+                            if (Math.Abs(shape.point1.X - initialX) < shape.width && Math.Abs(shape.point1.Y - initialY) < shape.length)
+                            {
+                                command.preAction = shapeList[counter];
+                                shapeList[counter].Move(secondaryX - initialX, secondaryY - initialY);
+                                command.shapeListPosition = counter;
+                                command.postAction = shapeList[counter];
+                                command.deltaX = secondaryX - initialX;
+                                command.deltaY = secondaryY - initialY;
+                                commandList.Add(command);
+                                currentCommand++;
+                            }
+                            else
+                                counter++;
+                            break;
+                        case "Square":
+                            if (Math.Abs(shape.point1.X - initialX) < shape.width && Math.Abs(shape.point1.Y - initialY) < shape.width)
+                            {
+                                command.preAction = shapeList[counter];
+                                shapeList[counter].Move(secondaryX - initialX, secondaryY - initialY);
+                                command.shapeListPosition = counter;
+                                command.postAction = shapeList[counter];
+                                command.deltaX = secondaryX - initialX;
+                                command.deltaY = secondaryY - initialY;
+                                commandList.Add(command);
+                                currentCommand++;
+                            }
+                            else
+                                counter++;
+                            break;
+                        case "Triangle":
+                            break;
+                        case "Embedded Image":
+                            if (Math.Abs(shape.point1.X - initialX) < shape.width && Math.Abs(shape.point1.Y - initialY) < shape.length)
+                            {
+                                command.preAction = shapeList[counter];
+                                shapeList[counter].Move(secondaryX - initialX, secondaryY - initialY);
+                                command.shapeListPosition = counter;
+                                command.postAction = shapeList[counter];
+                                command.deltaX = secondaryX - initialX;
+                                command.deltaY = secondaryY - initialY;
+                                commandList.Add(command);
+                                currentCommand++;
+                            }
+                            else
+                                counter++;
+                            break;
+                        case "Line":
+                            break;
+                        default:
+                            counter++;
+                            break;
+                    }
+                }
+                clearShapes();
+                renderShapeList();
+            }
         }
 
         private void drawShape()
@@ -282,6 +362,13 @@ namespace ShapeApplication
             }
             Shape shape = factory.GetShape();
             renderShape(shape);
+            shapeList.Add(shape);
+            Command command = new Command(Command.commandType.DRAW);
+            command.postAction = shape;
+            command.preAction = null;
+            command.shapeListPosition = shapeList.IndexOf(shape);
+            commandList.Add(command);
+            currentCommand++;
         }
 
         private void renderShape(Shape shape)
@@ -321,14 +408,267 @@ namespace ShapeApplication
         /* Command Pattern =========================================================================*/
         private void btnUndo_Click(object sender, EventArgs e)
         {
-            //TODO: Add undo functionality
+            Command command = commandList[currentCommand - 1];
+            switch (command.type)
+            {
+                case Command.commandType.DRAW:
+                    shapeList.RemoveAt(command.shapeListPosition);
+                    clearShapes();
+                    renderShapeList();
+                    break;
+                case Command.commandType.MOVE:
+                    shapeList[command.shapeListPosition].Move(command.deltaX * -1, command.deltaY * -1);
+                    clearShapes();
+                    renderShapeList();
+                    break;
+                case Command.commandType.ERASE:
+                    shapeList.Add(command.preAction);
+                    commandList[currentCommand - 1].shapeListPosition = shapeList.Count - 1;
+                    clearShapes();
+                    renderShapeList();
+                    break;
+                default:
+                    break;
+            }
+            currentCommand--;
         }
 
         private void btnRedo_Click(object sender, EventArgs e)
         {
-            //TODO: Add redo functionality
+            Command command = commandList[currentCommand];
+            switch (command.type) 
+                {
+                case Command.commandType.DRAW:
+                    shapeList.Add(command.postAction);
+                    clearShapes();
+                    renderShapeList();
+                    break;
+                case Command.commandType.MOVE:
+                    shapeList[command.shapeListPosition].Move(command.deltaX, command.deltaY);
+                    clearShapes();
+                    renderShapeList();
+                    break;
+                case Command.commandType.ERASE:
+                    shapeList.Remove(command.preAction);
+                    clearShapes();
+                    renderShapeList();
+                    break;
+                default:
+                    break;
+            }
+            currentCommand++;
         }
         //============================================================================================
+
+        /* Manipulate Shapes ========================================================================*/
+        private void ShapeApp_Click(object sender, EventArgs e)
+        {
+            if(designation == shapeDesignation.ERASE)
+            {
+                Shape shape;
+                Command command = new Command(Command.commandType.ERASE);
+                string type = "";
+                int counter = 0;
+                while (counter < shapeList.Count + 1) {
+                    if (counter < shapeList.Count)
+                    {
+                        shape = shapeList[counter];
+                        type = shape.ShapeType;
+                    }
+                    else
+                    {
+                        shape = null;
+                        type = "";
+                    }
+                        
+                    switch (type)
+                    {
+                        case "Circle":
+                            if (Math.Abs(shape.point1.X - initialX) < shape.width && Math.Abs(shape.point1.Y - initialY) < shape.width)
+                            {
+                                command.preAction = shape;
+                                command.shapeListPosition = shapeList.IndexOf(shape);
+                                shapeList.Remove(shape);
+                                command.postAction = null;
+                                commandList.Add(command);
+                                currentCommand++;
+                            }
+                            else
+                                counter++;
+                            break;
+                        case "Ellipse":
+                            if (Math.Abs(shape.point1.X - initialX) < shape.width && Math.Abs(shape.point1.Y - initialY) < shape.length)
+                            {
+                                command.preAction = shape;
+                                command.shapeListPosition = shapeList.IndexOf(shape);
+                                shapeList.Remove(shape);
+                                command.postAction = null;
+                                commandList.Add(command);
+                                currentCommand++;
+                            }
+                            else
+                                counter++;
+                            break;
+                        case "Rectangle":
+                            if (Math.Abs(shape.point1.X - initialX) < shape.width && Math.Abs(shape.point1.Y - initialY) < shape.length)
+                            {
+                                command.preAction = shape;
+                                command.shapeListPosition = shapeList.IndexOf(shape);
+                                shapeList.Remove(shape);
+                                command.postAction = null;
+                                commandList.Add(command);
+                                currentCommand++;
+                            }
+                            else
+                                counter++;
+                            break;
+                        case "Square":
+                            if (Math.Abs(shape.point1.X - initialX) < shape.width && Math.Abs(shape.point1.Y - initialY) < shape.width)
+                            {
+                                command.preAction = shape;
+                                command.shapeListPosition = shapeList.IndexOf(shape);
+                                shapeList.Remove(shape);
+                                command.postAction = null;
+                                commandList.Add(command);
+                                currentCommand++;
+                            }
+                            else
+                                counter++;
+                            break;
+                        case "Triangle":
+                            //TODO: Erase Triangle
+                            break;
+                        case "Embedded Image":
+                            if (Math.Abs(shape.point1.X - initialX) < shape.width && Math.Abs(shape.point1.Y - initialY) < shape.length)
+                            {
+                                command.preAction = shape;
+                                command.shapeListPosition = shapeList.IndexOf(shape);
+                                shapeList.Remove(shape);
+                                command.postAction = null;
+                                commandList.Add(command);
+                                currentCommand++;
+                            }
+                            else
+                                counter++;
+                            break;
+                        case "Line":
+                            //TODO: Erase Line
+                            break;
+                        default:
+                            counter++;
+                            break;
+                    }
+                }
+                clearShapes();
+                renderShapeList();
+            }
+        }
+        //============================================================================================
+
+        /* Save Functions ============================================================================*/
+        private void menuItemSave_Click(object sender, EventArgs e)
+        {
+            if (!saved)
+            {
+                SaveFileDialog save = new SaveFileDialog();
+                save.FileName = "Shape" + counter.ToString() + ".txt";
+                save.Filter = "Text File | *.txt";
+                if (save.ShowDialog() == DialogResult.OK)
+                {
+                    CompositeImage ci = new CompositeImage(save.FileName);
+                    saveFilepath = save.FileName;
+                    StreamWriter writer = new StreamWriter(save.OpenFile());
+                    for (int i = 0; i < shapeList.Count(); i++)
+                    {
+                        writer.WriteLine(shapeList[i].ToString());
+                        ci.addShape(shapeList[i]);
+                    }
+                    writer.Dispose();
+                    writer.Close();
+                    counter++;
+                    saved = true;
+                }
+            }
+            else
+            {
+                CompositeImage ci = new CompositeImage(saveFilepath);
+                using (StreamWriter writer = File.AppendText(saveFilepath))
+                {
+                    for (int i = 0; i < shapeList.Count(); i++)
+                    {
+                        writer.WriteLine(shapeList[i].ToString());
+                        ci.addShape(shapeList[i]);
+                    }
+                    writer.Dispose();
+                    writer.Close();
+                }
+            }
+        }
+
+        private void menuItemSaveAs_Click(object sender, EventArgs e)
+        {
+            SaveFileDialog save = new SaveFileDialog();
+            save.FileName = "Shape" + counter.ToString() + ".txt";
+            save.Filter = "Text File | *.txt";
+            if (save.ShowDialog() == DialogResult.OK)
+            {
+                CompositeImage ci = new CompositeImage(save.FileName);
+                saveFilepath = save.FileName;
+                StreamWriter writer = new StreamWriter(save.OpenFile());
+                for (int i = 0; i < shapeList.Count(); i++)
+                {
+                    writer.WriteLine(shapeList[i].ToString());
+                    ci.addShape(shapeList[i]);
+                }
+                writer.Dispose();
+                writer.Close();
+                counter++;
+                saved = true;
+            }
+        }
+
+        private void menuItemOpen_Click(object sender, EventArgs e)
+        {
+            if (!saved)
+            {
+                if(MessageBox.Show("You haven't saved your work yet. Proceed?", "Confirm", MessageBoxButtons.OKCancel) == System.Windows.Forms.DialogResult.OK)
+                {
+                    openFile();
+                }
+            }
+            else
+            {
+                openFile();
+            }
+        }
+
+        private void openFile()
+        {
+            clearShapes();
+            int count = 0;
+            string line;
+            string filepath = "";
+            OpenFileDialog openFileDialog1 = new OpenFileDialog();
+            DialogResult result = openFileDialog1.ShowDialog();
+            if (result == DialogResult.OK)
+            {
+                filepath = openFileDialog1.FileName;
+            }
+            if (filepath != "")
+            {
+                System.IO.StreamReader file = new System.IO.StreamReader(filepath);
+                while ((line = file.ReadLine()) != null)
+                {
+                    shapeList.Add(readShape(line));
+                    count++;
+                }
+
+                file.Close();
+            }
+
+            renderShapeList();
+        }
+        //===============================================================================================
     }
 
 
