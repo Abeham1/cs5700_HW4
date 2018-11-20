@@ -55,11 +55,11 @@ namespace ShapesTests
             Assert.AreEqual(2, p1.Y, 0);
 
             p1.MoveX(-20);
-            Assert.AreEqual(-8, p1.X, 0);
+            Assert.AreEqual(-9, p1.X, 0);
             Assert.AreEqual(2, p1.Y, 0);
 
             p1.MoveX(0);
-            Assert.AreEqual(-8, p1.X, 0);
+            Assert.AreEqual(-9, p1.X, 0);
             Assert.AreEqual(2, p1.Y, 0);
         }
 
@@ -78,11 +78,11 @@ namespace ShapesTests
 
             p1.MoveY(-20);
             Assert.AreEqual(1, p1.X, 0);
-            Assert.AreEqual(-7, p1.Y, 0);
+            Assert.AreEqual(-8, p1.Y, 0);
 
             p1.MoveY(0);
             Assert.AreEqual(1, p1.X, 0);
-            Assert.AreEqual(-7, p1.Y, 0);
+            Assert.AreEqual(-8, p1.Y, 0);
         }
 
         [TestMethod]
