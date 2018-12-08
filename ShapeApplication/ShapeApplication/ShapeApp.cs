@@ -23,9 +23,12 @@ namespace ShapeApplication
         public string embeddedPicFilepath;
         private System.Drawing.Graphics graphicsObj;
         private Pen pen;
+        private Pen selectionPen;
         private enum shapeDesignation {CIRCLE, ELLIPSE, SQUARE, RECTANGLE, TRIANGLE, LINE, EMBEDDED_PIC, SELECT, ERASE};
         private shapeDesignation designation;
         private bool isDown;
+        private bool selection;
+        private bool selectionRectangleInList;
         int initialX;
         int initialY;
         int secondaryX;
@@ -42,6 +45,10 @@ namespace ShapeApplication
             InitializeComponent();
             graphicsObj = this.CreateGraphics();
             pen = new Pen(System.Drawing.Color.Black, 5);
+            selectionPen = new Pen(System.Drawing.Color.Black, 3);
+            selectionPen.DashPattern = new float[] { 4.0F, 2.0F, 1.0F, 3.0F };
+            selection = false;
+            selectionRectangleInList = false;
             designation = shapeDesignation.LINE;
             btnLine.BackColor = Color.Aquamarine;
             isDown = false;
@@ -87,7 +94,14 @@ namespace ShapeApplication
         {
             for (int i = 0; i < shapeList.Count(); i++)
             {
-                renderShape(shapeList[i]);
+                if(i == shapeList.Count() - 1 && selection)
+                {
+                    renderShape(shapeList[i], true);
+                }
+                else
+                {
+                    renderShape(shapeList[i], false);
+                }
             }
         }
 
@@ -196,17 +210,37 @@ namespace ShapeApplication
         private void ShapeApp_MouseDown(object sender, MouseEventArgs e)
         {
             isDown = true;
+            selection = true;
             initialX = e.X;
             initialY = e.Y;
         }
 
         private void ShapeApp_MouseMove(object sender, MouseEventArgs e)
         {
-            if (isDown && designation != shapeDesignation.LINE)
+            if (isDown && designation != shapeDesignation.LINE && designation != shapeDesignation.ERASE)
             {
                 secondaryX = e.X;
                 secondaryY = e.Y;
+                if (secondaryX != initialX && secondaryY != initialY && designation != shapeDesignation.SELECT)
+                {
+                    Shapes.Point RectanglePoint = new Shapes.Point(Math.Min(initialX, secondaryX), Math.Min(initialY, secondaryY));
+                    ShapeFactory factory = new RectangleFactory(RectanglePoint, Math.Abs(secondaryY - initialY), Math.Abs(secondaryX - initialX));
+                    Shape shape = factory.GetShape();
+                    if (selection == true && selectionRectangleInList == false)
+                    {
+                        shapeList.Add(shape);
+                        selectionRectangleInList = true;
+                    }
+                    else
+                    {
+                        shapeList[shapeList.Count - 1] = shape;
+                    }
+                    clearShapes();
+                    renderShapeList();
+                }
             }
+            //Todo: create marching ant rectangle and insert at end of shapelist. With each movement, replace that shape and redraw the shapelist. Have the resultant shape replace the marching ants.
+
         }
 
         private void ShapeApp_MouseUp(object sender, MouseEventArgs e)
@@ -214,6 +248,12 @@ namespace ShapeApplication
             if(designation != shapeDesignation.SELECT && designation != shapeDesignation.ERASE)
             {
                 isDown = false;
+                selection = false;
+                selectionRectangleInList = false;
+                if (shapeList.Any())
+                {
+                    shapeList.RemoveAt(shapeList.Count - 1);
+                }
                 drawShape();
             }
             if (designation == shapeDesignation.SELECT)
@@ -361,8 +401,10 @@ namespace ShapeApplication
                     break;
             }
             Shape shape = factory.GetShape();
-            renderShape(shape);
+            //renderShape(shape, false);
             shapeList.Add(shape);
+            clearShapes();
+            renderShapeList();
             Command command = new Command(Command.commandType.DRAW);
             command.postAction = shape;
             command.preAction = null;
@@ -371,7 +413,7 @@ namespace ShapeApplication
             currentCommand++;
         }
 
-        private void renderShape(Shape shape)
+        private void renderShape(Shape shape, bool select)
         {
             System.Drawing.Rectangle rectangle = new System.Drawing.Rectangle(0, 0, 0, 0);
 
@@ -385,7 +427,14 @@ namespace ShapeApplication
                 case "Rectangle":
                 case "Square":
                     rectangle = new System.Drawing.Rectangle(shape.point1.X, shape.point1.Y, shape.width, shape.length);
-                    graphicsObj.DrawRectangle(pen, rectangle);
+                    if (select)
+                    {
+                        graphicsObj.DrawRectangle(selectionPen, rectangle);
+                    }
+                    else
+                    {
+                        graphicsObj.DrawRectangle(pen, rectangle);
+                    }
                     break;
                 case "Triangle":
                     System.Drawing.Point[] points =
